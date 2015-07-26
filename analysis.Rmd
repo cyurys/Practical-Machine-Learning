@@ -6,6 +6,8 @@ Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible t
 
 
 ```{r}
+library(caret)
+
 summary(cars)
 ```
 
