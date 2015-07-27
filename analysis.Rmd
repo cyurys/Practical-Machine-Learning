@@ -87,7 +87,7 @@ confusionMatrix(pred.rf, testTrainN$classe)
 
 Out-of-sample error can be estimated 1-Accuracy of cross validation.
 Therefore it is:
-- for the Classification tree
+- 51.89% for the Classification tree
 - for the Random Forest
 
 # Prediction
