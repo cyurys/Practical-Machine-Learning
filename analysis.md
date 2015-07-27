@@ -84,6 +84,13 @@ Predictions
 
 ```r
 pred.rpart <- predict(model.rpart, testTrainN)
+```
+
+```
+## Loading required package: rpart
+```
+
+```r
 confusionMatrix(pred.rpart, testTrainN$classe)
 ```
 
@@ -141,12 +148,23 @@ model.rf <- train(classe ~ ., data=trainTrainN, method="rf",
 plot(model.rf$finalModel)
 ```
 
-![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png) 
+```
+## Error in xy.coords(x, y, xlabel, ylabel, log): 'x' is a list, but does not have components 'x' and 'y'
+```
 
 Predictions
 
 ```r
 pred.rf <- predict(model.rf, testTrainN)
+```
+
+```
+## Loading required package: randomForest
+## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.
+```
+
+```r
 confusionMatrix(pred.rf, testTrainN$classe)
 ```
 
@@ -188,5 +206,20 @@ confusionMatrix(pred.rf, testTrainN$classe)
 
 Out-of-sample error can be estimated 1-Accuracy of cross validation.
 Therefore it is:
-- for the Classification tree
-- for the Random Forest
+- 51.89% for the Classification Tree
+- 0.61% for the Random Forest
+
+# Prediction
+
+We use Random Forest (which having least estimated out-of-sample error) to make a prediction on the test set:
+
+
+```r
+pred <- predict(model.rf, TestN)
+pred
+```
+
+```
+##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E
+```
