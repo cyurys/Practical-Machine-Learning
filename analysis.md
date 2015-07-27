@@ -66,11 +66,11 @@ testTrainN <- TrainN[-inTrain,]
 
 # Build a Classification Tree
 
-10-fold cross validation used
+4-fold cross validation used
 
 ```r
 model.rpart <- train(classe ~ ., data=trainTrainN, method="rpart", 
-                     trControl=trainControl(method="cv", number=10, repeats=2))
+                     trControl=trainControl(method="cv", number=4, repeats=2))
 ```
 
 ```r
@@ -121,13 +121,72 @@ confusionMatrix(pred.rpart, testTrainN$classe)
 ## Balanced Accuracy      0.7645  0.59666  0.62723   0.5000  0.73978
 ```
 
+# Build a Random Forest
 
-You can also embed plots, for example:
-
+4-fold cross validation used
 
 ```r
-plot(cars)
+set.seed(2015)
+model.rf <- train(classe ~ ., data=trainTrainN, method="rf", 
+                     trControl=trainControl(method="cv", number=4, repeats=2))
 ```
 
-![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8-1.png) 
+```
+## Loading required package: randomForest
+## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.
+```
 
+```r
+plot(model.rf$finalModel)
+```
+
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png) 
+
+Predictions
+
+```r
+pred.rf <- predict(model.rf, testTrainN)
+confusionMatrix(pred.rf, testTrainN$classe)
+```
+
+```
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1670   15    0    0    0
+##          B    3 1123    4    0    2
+##          C    1    1 1019    4    0
+##          D    0    0    3  959    2
+##          E    0    0    0    1 1078
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9939          
+##                  95% CI : (0.9915, 0.9957)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc > NIR] : < 2.2e-16       
+##                                           
+##                   Kappa : 0.9923          
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9976   0.9860   0.9932   0.9948   0.9963
+## Specificity            0.9964   0.9981   0.9988   0.9990   0.9998
+## Pos Pred Value         0.9911   0.9920   0.9941   0.9948   0.9991
+## Neg Pred Value         0.9990   0.9966   0.9986   0.9990   0.9992
+## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
+## Detection Rate         0.2838   0.1908   0.1732   0.1630   0.1832
+## Detection Prevalence   0.2863   0.1924   0.1742   0.1638   0.1833
+## Balanced Accuracy      0.9970   0.9920   0.9960   0.9969   0.9980
+```
+
+# Out-of-sample error
+
+Out-of-sample error can be estimated 1-Accuracy of cross validation.
+Therefore it is:
+- for the Classification tree
+- for the Random Forest
