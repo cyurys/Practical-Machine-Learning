@@ -6,24 +6,95 @@ Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible t
 # Summary
 
 goal: 
-- to predict the manner in which people did the exercise ("classe" variable) using any other variables
+- to predict the manner in which people did the exercise ("classe" variable) using any other variables  
+
 steps:
 - use cross validation and out-of-sample error estimation
 - build prediction models
 - compare models
 - predict 20 test cases
 
-
-
+# Steps
 ```{r}
 library(caret)
-
-summary(cars)
 ```
 
-You can also embed plots, for example:
-
-```{r fig.width=7, fig.height=6}
-plot(cars)
+Load data sets
+```{r cache=TRUE}
+Train <- read.csv("pml-training.csv")
+Test <- read.csv("pml-testing.csv")
+length(Test)
 ```
 
+Eliminate irrelevant variables (user_name, timestamps, window) and varibles with lot of *NA*s (here with all *NA* in Test set).
+```{r cache=TRUE}
+NAcols <- which(colSums(!is.na(Test))==0)
+irrelevant.names <- c(1:7)
+TrainN <- Train[,-c(irrelevant.names, NAcols)]
+TestN <- Test[,-c(irrelevant.names, NAcols)]
+length(TestN)
+```
+**Note:** the variable *cvtd_timestamp* may be useful if extract information about weekdays and time from it (as seen in previous Data Science courses).
+
+
+Split the data  (70% for the training data set):
+```{r cache=TRUE}
+set.seed(23)
+inTrain <- createDataPartition(TrainN$classe, p=0.7, list=FALSE)
+trainTrainN <- TrainN[inTrain,]
+testTrainN <- TrainN[-inTrain,]
+```
+
+
+
+# Build a Classification Tree
+
+4-fold cross validation used
+```{r cache=TRUE}
+model.rpart <- train(classe ~ ., data=trainTrainN, method="rpart", 
+                     trControl=trainControl(method="cv", number=4, repeats=2))
+```
+```{r}
+plot(model.rpart$finalModel, uniform=TRUE, main="Classification Tree")
+text(model.rpart$finalModel, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+Predictions
+```{r}
+pred.rpart <- predict(model.rpart, testTrainN)
+confusionMatrix(pred.rpart, testTrainN$classe)
+```
+
+# Build a Random Forest
+
+4-fold cross validation used
+```{r cache=TRUE}
+set.seed(2015)
+model.rf <- train(classe ~ ., data=trainTrainN, method="rf", 
+                     trControl=trainControl(method="cv", number=4, repeats=2))
+```
+```{r}
+plot(model.rf$finalModel)
+```
+
+Predictions
+```{r}
+pred.rf <- predict(model.rf, testTrainN)
+confusionMatrix(pred.rf, testTrainN$classe)
+```
+
+# Out-of-sample error
+
+Out-of-sample error can be estimated 1-Accuracy of cross validation.
+Therefore it is:
+- for the Classification tree
+- for the Random Forest
+
+# Prediction
+
+We use Random Forest (which having least estimated out-of-sample error) to make a prediction on the test set:
+
+```{r}
+pred <- predict(model.rf, TestN)
+pred
+```

@@ -6,8 +6,15 @@ Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible t
 # Summary
 
 goal: 
-- to predict the manner in which people did the exercise ("classe" variable) using any other variables
+- to predict the manner in which people did the exercise ("classe" variable) using any other variables  
 
+steps:
+- use cross validation and out-of-sample error estimation
+- build prediction models
+- compare models
+- predict 20 test cases
+
+# Steps
 
 ```r
 library(caret)
@@ -18,19 +25,102 @@ library(caret)
 ## Loading required package: ggplot2
 ```
 
+Load data sets
+
 ```r
-summary(cars)
+Train <- read.csv("pml-training.csv")
+Test <- read.csv("pml-testing.csv")
+length(Test)
 ```
 
 ```
-##      speed           dist       
-##  Min.   : 4.0   Min.   :  2.00  
-##  1st Qu.:12.0   1st Qu.: 26.00  
-##  Median :15.0   Median : 36.00  
-##  Mean   :15.4   Mean   : 42.98  
-##  3rd Qu.:19.0   3rd Qu.: 56.00  
-##  Max.   :25.0   Max.   :120.00
+## [1] 160
 ```
+
+Eliminate irrelevant variables (user_name, timestamps, window) and varibles with lot of *NA*s (here with all *NA* in Test set).
+
+```r
+NAcols <- which(colSums(!is.na(Test))==0)
+irrelevant.names <- c(1:7)
+TrainN <- Train[,-c(irrelevant.names, NAcols)]
+TestN <- Test[,-c(irrelevant.names, NAcols)]
+length(TestN)
+```
+
+```
+## [1] 53
+```
+**Note:** the variable *cvtd_timestamp* may be useful if extract information about weekdays and time from it (as seen in previous Data Science courses).
+
+
+Split the data  (70% for the training data set):
+
+```r
+set.seed(23)
+inTrain <- createDataPartition(TrainN$classe, p=0.7, list=FALSE)
+trainTrainN <- TrainN[inTrain,]
+testTrainN <- TrainN[-inTrain,]
+```
+
+
+
+# Build a Classification Tree
+
+10-fold cross validation used
+
+```r
+model.rpart <- train(classe ~ ., data=trainTrainN, method="rpart", 
+                     trControl=trainControl(method="cv", number=10, repeats=2))
+```
+
+```r
+plot(model.rpart$finalModel, uniform=TRUE, main="Classification Tree")
+text(model.rpart$finalModel, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png) 
+
+Predictions
+
+```r
+pred.rpart <- predict(model.rpart, testTrainN)
+confusionMatrix(pred.rpart, testTrainN$classe)
+```
+
+```
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1511  491  496  446  140
+##          B   15  279    9  160   61
+##          C  143  369  521  358  361
+##          D    0    0    0    0    0
+##          E    5    0    0    0  520
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.4811          
+##                  95% CI : (0.4682, 0.4939)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc > NIR] : < 2.2e-16       
+##                                           
+##                   Kappa : 0.322           
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9026  0.24495  0.50780   0.0000  0.48059
+## Specificity            0.6265  0.94838  0.74666   1.0000  0.99896
+## Pos Pred Value         0.4899  0.53244  0.29737      NaN  0.99048
+## Neg Pred Value         0.9418  0.83958  0.87781   0.8362  0.89515
+## Prevalence             0.2845  0.19354  0.17434   0.1638  0.18386
+## Detection Rate         0.2568  0.04741  0.08853   0.0000  0.08836
+## Detection Prevalence   0.5240  0.08904  0.29771   0.0000  0.08921
+## Balanced Accuracy      0.7645  0.59666  0.62723   0.5000  0.73978
+```
+
 
 You can also embed plots, for example:
 
@@ -39,5 +129,5 @@ You can also embed plots, for example:
 plot(cars)
 ```
 
-![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png) 
+![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8-1.png) 
 
